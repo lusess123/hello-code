@@ -158,8 +158,8 @@ class HelloCodeCLI {
         process.exit(0);
       }
 
-      console.log('🗑️  删除现有目录...');
-      await FileUtils.remove(projectPath);
+      // 不在这里删除目录，而是在克隆前删除
+      console.log('✅ 确认覆盖现有目录');
     }
   }
 
@@ -172,7 +172,20 @@ class HelloCodeCLI {
     try {
       if (isCurrentDir) {
         // 在当前目录初始化，需要临时克隆到一个临时目录，然后移动文件
-        const tempDir = path.join(process.cwd(), '.temp-hello-code-' + Date.now());
+        let tempDir: string;
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        // 确保临时目录名不重复
+        do {
+          tempDir = path.join(process.cwd(), '.temp-hello-code-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
+          attempts++;
+        } while (await FileUtils.pathExists(tempDir) && attempts < maxAttempts);
+        
+        if (attempts >= maxAttempts) {
+          throw new Error('无法创建唯一的临时目录');
+        }
+        
         await this.gitUtils.cloneRepository(repoUrl, tempDir);
         
         // 移动文件到当前目录
@@ -180,12 +193,23 @@ class HelloCodeCLI {
         for (const file of files) {
           const srcPath = path.join(tempDir, file);
           const destPath = path.join(targetPath, file);
+          
+          // 如果目标文件已存在，先删除
+          if (await FileUtils.pathExists(destPath)) {
+            await FileUtils.remove(destPath);
+          }
+          
           await FileUtils.moveItem(srcPath, destPath);
         }
         
         // 清理临时目录
         await FileUtils.remove(tempDir);
       } else {
+        // 确保目标目录不存在
+        if (await FileUtils.pathExists(targetPath)) {
+          await FileUtils.remove(targetPath);
+        }
+        
         await this.gitUtils.cloneRepository(repoUrl, targetPath);
       }
       console.log('✅ 模板下载成功');
