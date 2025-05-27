@@ -282,8 +282,9 @@ async function main() {
   await cli.run();
 }
 
-// 运行程序
-if (import.meta.url === `file://${process.argv[1]}`) {
+// 运行程序 - 当文件被直接执行时
+if (process.argv.length >= 2) {
+  // 直接运行主函数，不进行复杂的入口点检测
   main().catch((error) => {
     console.error('程序运行出错:', error);
     process.exit(1);
