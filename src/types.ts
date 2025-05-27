@@ -5,6 +5,7 @@ export interface UserInputs {
   projectName: string;
   authorName: string;
   repoUrl: string;
+  useCurrentDir?: boolean;
 }
 
 /**

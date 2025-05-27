@@ -25,23 +25,29 @@ class HelloCodeCLI {
       // 步骤1: 获取用户输入
       const userInputs = await this.getUserInputs();
       
-      // 步骤2: 验证项目名称
-      await this.validateProjectName(userInputs.projectName);
+      // 步骤2: 确定项目目录
+      const projectPath = userInputs.useCurrentDir ? process.cwd() : userInputs.projectName;
+      const isCurrentDir = userInputs.useCurrentDir || false;
       
-      // 步骤3: 克隆模板仓库
-      await this.cloneTemplate(userInputs.repoUrl, userInputs.projectName);
+      // 步骤3: 验证项目目录
+      if (!isCurrentDir) {
+        await this.validateProjectName(userInputs.projectName);
+      }
       
-      // 步骤4: 创建模板变量
+      // 步骤4: 克隆模板仓库
+      await this.cloneTemplate(userInputs.repoUrl, projectPath, isCurrentDir);
+      
+      // 步骤5: 创建模板变量
       const templateVariables = this.createTemplateVariables(userInputs);
       
-      // 步骤5: 处理文件和文件夹
-      await this.processTemplate(userInputs.projectName, templateVariables);
+      // 步骤6: 处理文件和文件夹
+      await this.processTemplate(projectPath, templateVariables);
       
-      // 步骤6: 清理Git信息
-      await this.cleanupGitInfo(userInputs.projectName);
+      // 步骤7: 清理Git信息
+      await this.cleanupGitInfo(projectPath);
       
-      console.log(`\n✅ 项目 "${userInputs.projectName}" 创建成功！`);
-      console.log(`📁 项目位置: ${path.resolve(userInputs.projectName)}`);
+      console.log(`\n✅ 项目 "${userInputs.projectName}" ${isCurrentDir ? '初始化' : '创建'}成功！`);
+      console.log(`📁 项目位置: ${path.resolve(projectPath)}`);
       console.log('\n🎉 您现在可以开始开发了！');
       
     } catch (error) {
@@ -51,14 +57,36 @@ class HelloCodeCLI {
   }
 
   /**
+   * 检查当前目录是否适合初始化项目
+   */
+  private async isCurrentDirSuitableForInit(): Promise<boolean> {
+    try {
+      const files = await FileUtils.readDirectory(process.cwd());
+      // 允许存在一些常见的初始化文件
+      const allowedFiles = ['.git', '.gitignore', 'README.md', 'LICENSE', '.DS_Store'];
+      const significantFiles = files.filter((file: string) => !allowedFiles.includes(file));
+      
+      // 如果目录为空或只有允许的文件，则适合初始化
+      return significantFiles.length === 0;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
    * 获取用户输入
    */
   private async getUserInputs(): Promise<UserInputs> {
+    // 获取当前目录名作为默认项目名
+    const currentDirName = path.basename(process.cwd());
+    const defaultProjectName = /^[a-zA-Z0-9-_]+$/.test(currentDirName) ? currentDirName : '';
+
     const questions = [
       {
         type: 'input',
         name: 'projectName',
         message: '请输入项目名称:',
+        default: defaultProjectName,
         validate: (input: string) => {
           if (!input.trim()) {
             return '项目名称不能为空';
@@ -67,6 +95,16 @@ class HelloCodeCLI {
             return '项目名称只能包含字母、数字、连字符和下划线';
           }
           return true;
+        }
+      },
+      {
+        type: 'confirm',
+        name: 'useCurrentDir',
+        message: '是否在当前目录中初始化项目？',
+        default: true,
+        when: async (answers: any) => {
+          // 检查当前目录是否为空或几乎为空
+          return await this.isCurrentDirSuitableForInit();
         }
       },
       {
@@ -128,11 +166,28 @@ class HelloCodeCLI {
   /**
    * 克隆模板仓库
    */
-  private async cloneTemplate(repoUrl: string, projectName: string): Promise<void> {
+  private async cloneTemplate(repoUrl: string, targetPath: string, isCurrentDir: boolean = false): Promise<void> {
     console.log('📥 正在下载模板...');
     
     try {
-      await this.gitUtils.cloneRepository(repoUrl, projectName);
+      if (isCurrentDir) {
+        // 在当前目录初始化，需要临时克隆到一个临时目录，然后移动文件
+        const tempDir = path.join(process.cwd(), '.temp-hello-code-' + Date.now());
+        await this.gitUtils.cloneRepository(repoUrl, tempDir);
+        
+        // 移动文件到当前目录
+        const files = await FileUtils.readDirectory(tempDir);
+        for (const file of files) {
+          const srcPath = path.join(tempDir, file);
+          const destPath = path.join(targetPath, file);
+          await FileUtils.moveItem(srcPath, destPath);
+        }
+        
+        // 清理临时目录
+        await FileUtils.remove(tempDir);
+      } else {
+        await this.gitUtils.cloneRepository(repoUrl, targetPath);
+      }
       console.log('✅ 模板下载成功');
     } catch (error) {
       throw new Error(`克隆仓库失败: ${error instanceof Error ? error.message : error}`);

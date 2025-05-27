@@ -164,4 +164,18 @@ export class FileUtils {
   static async remove(targetPath: string): Promise<void> {
     await fs.remove(targetPath);
   }
+
+  /**
+   * 读取目录内容
+   */
+  static async readDirectory(dirPath: string): Promise<string[]> {
+    return await fs.readdir(dirPath);
+  }
+
+  /**
+   * 移动文件或目录
+   */
+  static async moveItem(srcPath: string, destPath: string): Promise<void> {
+    await fs.move(srcPath, destPath);
+  }
 } 

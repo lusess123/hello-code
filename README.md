@@ -65,27 +65,57 @@ node dist/index.js --help
 2. **作者名称**: 项目作者的名称
 3. **仓库 URL**: Git 模板仓库的 URL
 
-### 示例
+### 示例1：在空目录中初始化（推荐）
 
 ```bash
-$ npm start
+# 创建并进入项目目录
+mkdir my-awesome-app && cd my-awesome-app
+
+# 运行 HelloCode
+hello-code  # 或者: node /path/to/hello-code/dist/index.js
 
 🚀 欢迎使用 HelloCode 脚手架工具！
 
-? 请输入项目名称: my-awesome-app
+? 请输入项目名称: my-awesome-app        # 自动检测当前目录名
+? 是否在当前目录中初始化项目？ Yes        # 自动检测空目录
 ? 请输入作者名称: John Doe
 ? 请输入模板仓库URL: https://github.com/username/template-repo.git
 
 📥 正在下载模板...
 ✅ 模板下载成功
 🔄 正在处理模板文件...
+📝 重命名: {{projectName}}-server -> my-awesome-app-server
 📝 重命名: {{projectName}}.config.js -> my-awesome-app.config.js
 ✅ 文件处理完成
 🧹 清理Git信息...
 ✅ Git信息清理完成
 
-✅ 项目 "my-awesome-app" 创建成功！
+✅ 项目 "my-awesome-app" 初始化成功！
 📁 项目位置: /current/directory/my-awesome-app
+
+🎉 您现在可以开始开发了！
+```
+
+### 示例2：创建新目录
+
+```bash
+hello-code
+
+🚀 欢迎使用 HelloCode 脚手架工具！
+
+? 请输入项目名称: my-new-project
+? 请输入作者名称: John Doe
+? 请输入模板仓库URL: https://github.com/username/template-repo.git
+
+📥 正在下载模板...
+✅ 模板下载成功
+🔄 正在处理模板文件...
+✅ 文件处理完成
+🧹 清理Git信息...
+✅ Git信息清理完成
+
+✅ 项目 "my-new-project" 创建成功！
+📁 项目位置: /current/directory/my-new-project
 
 🎉 您现在可以开始开发了！
 ```
