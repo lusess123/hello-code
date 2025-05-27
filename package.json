@@ -1,0 +1,43 @@
+{
+  "name": "hello-code",
+  "version": "1.0.0",
+  "description": "HelloCode - 一个用于生成项目模板的脚手架工具",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "hello-code": "./dist/index.js",
+    "HelloCode": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "scaffold",
+    "template",
+    "generator",
+    "boilerplate"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "^11.1.1",
+    "handlebars": "^4.7.8",
+    "inquirer": "^9.2.12",
+    "simple-git": "^3.20.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.2",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.8.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
